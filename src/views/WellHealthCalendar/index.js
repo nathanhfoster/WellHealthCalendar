@@ -45,7 +45,7 @@ class WellHealthCalendar extends Component {
   }
   
   componentWillMount() {
-    const Events = new List([]).push(
+    const Events = new List().push(
       {key: 1, name: 'Event 1',   startTime: new Date(2018, 8, 3, 10, 30), endTime: new Date(2018, 9, 3, 12, 30)},
       {key: 2, name: 'Event 2',   startTime: new Date(2018, 8, 3, 10, 30), endTime: new Date(2018, 9, 3, 12, 30)},
       {key: 3, name: 'Event 3',   startTime: new Date(2018, 8, 4, 10, 30), endTime: new Date(2018, 9, 4, 12, 30)},
@@ -61,7 +61,6 @@ class WellHealthCalendar extends Component {
       {key: 13, name: 'Event 13', startTime: new Date(2018, 8, 25, 10, 30), endTime: new Date(2018, 9, 5, 12, 30)},
       {key: 14, name: 'Event 14', startTime: new Date(2018, 8, 25, 10, 30), endTime: new Date(2018, 9, 5, 12, 30)},
       {key: 15, name: 'Event 14', startTime: new Date(2018, 8, 25, 10, 30), endTime: new Date(2018, 10, 5, 12, 30)},
-    
       )
      this.props.setCalendarEvents(Events)
      this.getState(this.props)
@@ -113,7 +112,7 @@ class WellHealthCalendar extends Component {
     let mapCounter = {} // Use to display only 1 eventLabelColor per day for mobile
     return(
       <div class="TileContent">
-        {CalendarEvents.map( k => {
+        {CalendarEvents.size > 0 ? CalendarEvents.map( k => {
         const calendarDay = MomentJS(date)
         const eventStartTime = MomentJS(k.startTime)
         const eventFound = eventStartTime.isSame(calendarDay, 'day')
@@ -127,7 +126,7 @@ class WellHealthCalendar extends Component {
           : view === 'month' && eventFound && mapCounter[eventStartTime._d] < 2 ? 
           <div class="hasEventsContainerMobile"><span className="eventLabelColor" /></div>
           : null
-      })}
+      }) : null}
     </div>
     )
 }
@@ -166,7 +165,7 @@ class WellHealthCalendar extends Component {
           </Col>
           <Col className="EventList" lgHidden mdHidden sm={12}>
             <h2><Moment format="MM-D" filter={this.formatDate}>{activeDate}</Moment></h2>
-            <EventList data={CalendarEvents} activeDate={activeDate}/>
+            {CalendarEvents.size > 0 ? <EventList data={CalendarEvents} activeDate={activeDate}/> : null}
           </Col>
         </Row>
       </Grid>
