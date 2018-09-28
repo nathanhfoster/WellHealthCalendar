@@ -1,0 +1,51 @@
+.App {
+  height: 100vh;
+  width: 100vw;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background-color: rgba(0, 0, 0, .9);
+  position: absolute;
+  z-index: 1;
+  left: 0; right: 0;
+  top: 0; bottom: 0;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  background-color: rgba(189,189,189,0.4);
+  -webkit-border-radius: 100px;
+  transition: 200ms linear;
+}
+
+::-webkit-scrollbar-track-piece {
+  background-color: transparent;
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-track {
+  /* box-shadow: inset 0 0 5px var(--grey;
+  background: var(--grey; */
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--dark_grey);
+  border-radius: 10px;
+}
+
+input, select, textarea{
+  color: white !important;
+}
+
+::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+  color: white !important;
+  opacity: 1; /* Firefox */
+}
+
+:-ms-input-placeholder { /* Internet Explorer 10-11 */
+  color: white !important;
+}
+
+::-ms-input-placeholder { /* Microsoft Edge */
+  color: white !important;
+}
