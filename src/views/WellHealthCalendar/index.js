@@ -5,16 +5,19 @@ import Calendar from 'react-calendar/dist/entry.nostyle'
 import { Map, List} from 'immutable'
 import EventList from '../../components/EventList'
 import {Grid, Row, Col, PageHeader, Button} from 'react-bootstrap'
+import {setCalendarEvents} from '../../actions/App'
 import Moment from 'react-moment'
 import MomentJS from 'moment'
 import './styles.css'
 import './stylesM.css'
 
-const mapStateToProps = ({ Window }) => ({
-  Window
+const mapStateToProps = ({ Window, CalendarEvents }) => ({
+  Window,
+  CalendarEvents
 })
 
 const mapDispatchToProps = {
+  setCalendarEvents
 }
 
 class WellHealthCalendar extends Component {
@@ -23,22 +26,26 @@ class WellHealthCalendar extends Component {
  
     this.state = {
       activeDate: Date,
-      events: new List(),
-      isMobile: false
+      isMobile: false,
+      CalendarEvents: new List()
     }
   }
 
   static propTypes = { 
     activeDate: PropTypes.Date,
-    events: new List(),
-    isMobile: PropTypes.bool
+    isMobile: PropTypes.bool,
+    CalendarEvents: new List()
   }
 
   static defaultProps = {
     activeDate: new Date(),
     monthToString: {"01": 'Jan', "02": 'Feb', "03": 'Mar', "04": 'Apr', "05": 'May', "06": 'Jun',
-                    "07": 'Jul', "08": 'Aug', "09": 'Sep', "10": 'Oct', "11": 'Nov', "12": 'Dec'},
-    events: List([
+                    "07": 'Jul', "08": 'Aug', "09": 'Sep', "10": 'Oct', "11": 'Nov', "12": 'Dec'
+                  }
+  }
+  
+  componentWillMount() {
+    const Events = new List([]).push(
       {key: 1, name: 'Event 1',   startTime: new Date(2018, 8, 3, 10, 30), endTime: new Date(2018, 9, 3, 12, 30)},
       {key: 2, name: 'Event 2',   startTime: new Date(2018, 8, 3, 10, 30), endTime: new Date(2018, 9, 3, 12, 30)},
       {key: 3, name: 'Event 3',   startTime: new Date(2018, 8, 4, 10, 30), endTime: new Date(2018, 9, 4, 12, 30)},
@@ -54,11 +61,10 @@ class WellHealthCalendar extends Component {
       {key: 13, name: 'Event 13', startTime: new Date(2018, 8, 25, 10, 30), endTime: new Date(2018, 9, 5, 12, 30)},
       {key: 14, name: 'Event 14', startTime: new Date(2018, 8, 25, 10, 30), endTime: new Date(2018, 9, 5, 12, 30)},
       {key: 15, name: 'Event 14', startTime: new Date(2018, 8, 25, 10, 30), endTime: new Date(2018, 10, 5, 12, 30)},
-    ])
-  }
-  
-  componentWillMount() {
-    this.getState(this.props)
+    
+      )
+     this.props.setCalendarEvents(Events)
+     this.getState(this.props)
   }
 
   shouldComponentUpdate(nextProps) {
@@ -78,11 +84,13 @@ class WellHealthCalendar extends Component {
   }
 
   getState = props => {
-    const {activeDate, events, Window} = props
+    const {activeDate, Window, CalendarEvents} = props
+   
+
     this.setState({
       activeDate,
-      events,
-      Window
+      Window,
+      CalendarEvents
       })
   }
 
@@ -100,12 +108,12 @@ class WellHealthCalendar extends Component {
   }
 
   hasEvents = ({ date, view }) => {
-    const {events} = this.state
+    const {CalendarEvents} = this.state
     const {isMobile} = this.state.Window
     let mapCounter = {} // Use to display only 1 eventLabelColor per day for mobile
     return(
       <div class="TileContent">
-        {events.map( k => {
+        {CalendarEvents.map( k => {
         const calendarDay = MomentJS(date)
         const eventStartTime = MomentJS(k.startTime)
         const eventFound = eventStartTime.isSame(calendarDay, 'day')
@@ -131,7 +139,7 @@ class WellHealthCalendar extends Component {
   onActiveDateChange = ({ activeStartDate, view }) => this.setState({activeDate: activeStartDate})
 
   render() {
-    const {events, activeDate} = this.state
+    const {CalendarEvents, activeDate} = this.state
     return (
       <Grid className="WellHealthCalendar Container">
         <Row>
@@ -158,7 +166,7 @@ class WellHealthCalendar extends Component {
           </Col>
           <Col className="EventList" lgHidden mdHidden sm={12}>
             <h2><Moment format="MM-D" filter={this.formatDate}>{activeDate}</Moment></h2>
-            <EventList data={events} activeDate={activeDate}/>
+            <EventList data={CalendarEvents} activeDate={activeDate}/>
           </Col>
         </Row>
       </Grid>

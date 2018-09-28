@@ -1,5 +1,4 @@
 :root {
-  --cursor: url('./images/Cursor.png'), auto;
   --navBarHeight: 52px;
   --footerHeight: 126px;
   --primaryColor: #ff9800;
@@ -106,9 +105,6 @@
   --color_saddle_brown_approx: #5f3900;
   --color_cola_approx: #3a2300;
   --color_mulberry_wood_approx: #5f0030;
-}
-a:-webkit-any-link, button, html input[type=button], input[type=reset], input[type=submit], .Clickable {
-  cursor: url('./images/Cursor.png'), auto;
 }
 body {
   font-family: "Omnia", "Cinzel Decorative";

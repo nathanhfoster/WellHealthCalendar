@@ -7,7 +7,6 @@ import './AppM.css'
 import "regenerator-runtime/runtime"
 import {setWindow} from './actions/App'
 import WellHealthCalendar from './views/WellHealthCalendar'
-
 import 'moment-timezone'
 
 const mapStateToProps = ({Window}) => ({
