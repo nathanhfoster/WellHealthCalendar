@@ -2,7 +2,7 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import { connect as reduxConnect } from 'react-redux'
 import Calendar from 'react-calendar/dist/entry.nostyle'
-import { Map, List} from 'immutable'
+import {List} from 'immutable'
 import EventList from '../../components/EventList'
 import {Grid, Row, Col, PageHeader, Button} from 'react-bootstrap'
 import {setCalendarEvents} from '../../actions/App'
@@ -45,24 +45,6 @@ class WellHealthCalendar extends Component {
   }
   
   componentWillMount() {
-    const Events = new List().push(
-      {key: 1, name: 'Event 1',   startTime: new Date(2018, 8, 3, 10, 30), endTime: new Date(2018, 9, 3, 12, 30)},
-      {key: 2, name: 'Event 2',   startTime: new Date(2018, 8, 3, 10, 30), endTime: new Date(2018, 9, 3, 12, 30)},
-      {key: 3, name: 'Event 3',   startTime: new Date(2018, 8, 4, 10, 30), endTime: new Date(2018, 9, 4, 12, 30)},
-      {key: 4, name: 'Event 4',   startTime: new Date(2018, 8, 4, 10, 30), endTime: new Date(2018, 9, 4, 12, 30)},
-      {key: 5, name: 'Event 5',   startTime: new Date(2018, 8, 24, 10, 30), endTime: new Date(2018, 9, 4, 12, 30)},
-      {key: 6, name: 'Event 6',   startTime: new Date(2018, 8, 5, 10, 30), endTime: new Date(2018, 9, 4, 12, 30)},
-      {key: 7, name: 'Event 7',   startTime: new Date(2018, 8, 5, 10, 30), endTime: new Date(2018, 9, 5, 12, 30)},
-      {key: 8, name: 'Event 8',   startTime: new Date(2018, 8, 25, 10, 30), endTime: new Date(2018, 9, 5, 12, 30)},
-      {key: 9, name: 'Event 9',   startTime: new Date(2018, 8, 25, 10, 30), endTime: new Date(2018, 9, 5, 12, 30)},
-      {key: 10, name: 'Event 10', startTime: new Date(2018, 8, 25, 10, 30), endTime: new Date(2018, 9, 5, 12, 30)},
-      {key: 11, name: 'Event 11', startTime: new Date(2018, 8, 25, 10, 30), endTime: new Date(2018, 9, 5, 12, 30)},
-      {key: 12, name: 'Event 12', startTime: new Date(2018, 8, 25, 10, 30), endTime: new Date(2018, 9, 5, 12, 30)},
-      {key: 13, name: 'Event 13', startTime: new Date(2018, 8, 25, 10, 30), endTime: new Date(2018, 9, 5, 12, 30)},
-      {key: 14, name: 'Event 14', startTime: new Date(2018, 8, 25, 10, 30), endTime: new Date(2018, 9, 5, 12, 30)},
-      {key: 15, name: 'Event 14', startTime: new Date(2018, 8, 25, 10, 30), endTime: new Date(2018, 10, 5, 12, 30)},
-      )
-     this.props.setCalendarEvents(Events)
      this.getState(this.props)
   }
 
@@ -84,7 +66,6 @@ class WellHealthCalendar extends Component {
 
   getState = props => {
     const {activeDate, Window, CalendarEvents} = props
-   
 
     this.setState({
       activeDate,
@@ -112,7 +93,7 @@ class WellHealthCalendar extends Component {
     let mapCounter = {} // Use to display only 1 eventLabelColor per day for mobile
     return(
       <div class="TileContent">
-        {CalendarEvents.size > 0 ? CalendarEvents.map( k => {
+        {CalendarEvents.length > 0 ? CalendarEvents.map( k => {
         const calendarDay = MomentJS(date)
         const eventStartTime = MomentJS(k.startTime)
         const eventFound = eventStartTime.isSame(calendarDay, 'day')
@@ -129,7 +110,15 @@ class WellHealthCalendar extends Component {
       }) : null}
     </div>
     )
-}
+  }
+
+  setCalendarEvent = () => {
+    let {CalendarEvents} = this.state
+    CalendarEvents.push({key: 1, name: 'Event 1',   startTime: new Date(2018, 8, 3, 10, 30), endTime: new Date(2018, 9, 3, 12, 30)})
+    //CalendarEvents[new Date(2018, 8, 3, 10, 30, 10)] = {key: 1, name: 'Event 1',   startTime: new Date(2018, 8, 3, 10, 30), endTime: new Date(2018, 9, 3, 12, 30)}
+    this.props.setCalendarEvents(CalendarEvents)
+  }
+
 
   Today = () => {
     this.setState({activeDate: new Date()})
@@ -139,12 +128,14 @@ class WellHealthCalendar extends Component {
 
   render() {
     const {CalendarEvents, activeDate} = this.state
+    console.log(CalendarEvents)
     return (
       <Grid className="WellHealthCalendar Container">
         <Row>
           <PageHeader className="pageHeader">WELL HEALTH CALENDAR</PageHeader>
         </Row>
         <Row>
+          <Button onClick={this.setCalendarEvent} className="todayButton">Create</Button>
           <Button onClick={this.Today} className="todayButton">Today</Button>
         </Row>
         <Row>
@@ -165,7 +156,7 @@ class WellHealthCalendar extends Component {
           </Col>
           <Col className="EventList" lgHidden mdHidden sm={12}>
             <h2><Moment format="MM-D" filter={this.formatDate}>{activeDate}</Moment></h2>
-            {CalendarEvents.size > 0 ? <EventList data={CalendarEvents} activeDate={activeDate}/> : null}
+            {CalendarEvents.length > 0 ? <EventList data={CalendarEvents} activeDate={activeDate}/> : null}
           </Col>
         </Row>
       </Grid>
