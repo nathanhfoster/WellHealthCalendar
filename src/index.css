@@ -116,7 +116,7 @@ body {
 .Container {
   color: white;
 }
-.Container input {
+.Container input, .Container textarea {
   opacity: var(--mainOpacity);
   background-color: var(--slate_grey);
 }

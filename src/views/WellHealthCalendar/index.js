@@ -8,19 +8,11 @@ import {Grid, Row, Col, PageHeader, Button, Modal, Form, FormControl, FormGroup,
 import {setCalendarEvents} from '../../actions/App'
 import Moment from 'react-moment'
 import MomentJS from 'moment'
+import { extendMoment } from 'moment-range'
 import './styles.css'
 import './stylesM.css'
 
-const renderTimePicker = () => (
-  <ButtonToolbar>
-    <DropdownButton title="9:00am" id="dropdown-size-medium">
-      <MenuItem eventKey="1">9:00am</MenuItem>
-      <MenuItem eventKey="2">9:30am</MenuItem>
-      <MenuItem eventKey="3">10:00am</MenuItem>
-      <MenuItem eventKey="4">10:30am</MenuItem>
-    </DropdownButton>
-  </ButtonToolbar>
-)
+const MomentRangeJS = extendMoment(MomentJS)
 
 const mapStateToProps = ({ Window, CalendarEvents }) => ({
   Window,
@@ -57,12 +49,6 @@ class WellHealthCalendar extends Component {
     activeDate: new Date(),
     monthToString: {"01": 'Jan', "02": 'Feb', "03": 'Mar', "04": 'Apr', "05": 'May', "06": 'Jun',
                     "07": 'Jul', "08": 'Aug', "09": 'Sep', "10": 'Oct', "11": 'Nov', "12": 'Dec'},
-    formOptions: [
-      {type: "text", name: "title", placeholder: "Title"},
-      {type: "text", name: "startTime", placeholder: "Start Time", component: renderTimePicker},
-      {type: "text", name: "endTime", placeholder: "End Time"},
-      {type: "text", name: "description", placeholder: "Description"},
-    ]
   }
   
   componentWillMount() {
@@ -100,25 +86,26 @@ class WellHealthCalendar extends Component {
   }
 
   hasEvents = ({ date, view }) => {
-    const {CalendarEvents} = this.state
+    let {CalendarEvents} = this.state
     const {isMobile} = this.state.Window
     let mapCounter = {} // Use to display only 1 eventLabelColor per day for mobile
     return(
       <div class="TileContent">
-        {CalendarEvents.length > 0 ? CalendarEvents.map( k => {
-        const calendarDay = MomentJS(date)
-        const eventStartTime = MomentJS(k.startTime)
-        const eventFound = eventStartTime.isSame(calendarDay, 'day')
-        mapCounter[eventStartTime._d] = (mapCounter[eventStartTime._d]+1) || 1
-        return view === 'month' && eventFound && !isMobile ? 
-          <div className="hasEventsContainer">
-            <span className="eventLabelColor" />
-            <span className="eventStartTime"><Moment format="H:mma">{k.startTime}</Moment> {k.title}</span>
-            <h6 className="eventTitle">{k.name}</h6>
-          </div>
-          : view === 'month' && eventFound && mapCounter[eventStartTime._d] < 2 ? 
-          <div class="hasEventsContainerMobile"><span className="eventLabelColor" /></div>
-          : null
+        {CalendarEvents.length > 0 ? CalendarEvents.map(k => {
+          const calendarDay = MomentJS(date)
+          const eventStartTime = MomentJS(k.startTime)
+          const eventFound = eventStartTime.isSame(calendarDay, 'day')
+          mapCounter[eventStartTime.day()] = (mapCounter[eventStartTime.day()] + 1) || 1
+          
+          return view === 'month' && eventFound && !isMobile ? 
+            <div className="hasEventsContainer">
+              <span className="eventLabelColor" />
+              <span className="eventStartTime"><Moment format="h:mma">{k.startTime}</Moment> {k.title}</span>
+              <h6 className="eventTitle">{k.name}</h6>
+            </div>
+            : view === 'month' && eventFound && mapCounter[eventStartTime.day()] < 2 ? 
+            <div class="hasEventsContainerMobile"><span className="eventLabelColor" /></div>
+            : null
       }) : null}
     </div>
     )
@@ -126,10 +113,15 @@ class WellHealthCalendar extends Component {
 
   setCalendarEvent = () => {
     let {activeDate, CalendarEvents, title, startTime, endTime, description} = this.state
-    startTime = new Date(activeDate.getFullYear(), activeDate.getMonth(), activeDate.getDay(), startTime)
-    endTime = new Date(activeDate.getFullYear(), activeDate.getMonth(), activeDate.getDay(), endTime)
-    CalendarEvents.push({key: CalendarEvents.length, title, startTime, endTime, description})
-    this.props.setCalendarEvents(CalendarEvents)
+    startTime = new Date(activeDate.getFullYear(), activeDate.getMonth(), activeDate.getDay(), startTime.getHours(), startTime.getMinutes())
+    endTime = new Date(activeDate.getFullYear(), activeDate.getMonth(), activeDate.getDay(), endTime.getHours(), endTime.getMinutes())
+    
+    if(this.validForm(CalendarEvents, startTime, endTime)) {
+      CalendarEvents.push({key: CalendarEvents.length, title, startTime, endTime, description})
+      CalendarEvents.sort((a, b) => MomentJS(b.startTime) < MomentJS(a.startTime))
+      this.props.setCalendarEvents(CalendarEvents)
+      this.handleHide()
+    }
   }
 
 
@@ -139,24 +131,30 @@ class WellHealthCalendar extends Component {
 
   onActiveDateChange = ({ activeStartDate, view }) => this.setState({activeDate: activeStartDate})
 
-  renderForm = (formOptions) => formOptions.map(k =>
-    <FormGroup>
-      <ControlLabel>{k.placeholder}</ControlLabel>
-      <FormControl type={k.type} name={k.name} placeholder={k.placeholder} onChange={this.onFormChange} componentClass={k.component}/>
-    </FormGroup>)
+  validForm = (CalendarEvents, startTime, endTime) => {
+    const now = MomentJS(new Date())
+    const newStartTime = MomentJS(startTime)
+    const newEndTime = MomentJS(endTime)
+    const range1 = MomentRangeJS().range(newStartTime, newEndTime)
+    const activeCalendarEvents = CalendarEvents.filter(i => MomentJS(i.startTime).isSame(this.state.activeDate, 'day'))
 
-  validateForm = () => { 
-    //Appointments can only happen in the future
+    for(let i = 0; i < activeCalendarEvents.length; i++) {
+      const thisStartTime = MomentJS(activeCalendarEvents[i].startTime)
+      const thisEndTime = MomentJS(activeCalendarEvents[i].endTime)
+      const range2 = MomentRangeJS().range(thisStartTime, thisEndTime)
 
-   // No appointments requested should overlap
+      if(range1.overlaps(range2)) {
+        return alert("Appointment overlaps with an existing one.")
+      }
+      if(now.isAfter(newStartTime, 'hour')) {
+        return alert("Please select a date in the future.")
+      }
+    }
+    return true
   }
 
-
-
   render() {
-    const {CalendarEvents, activeDate} = this.state
-    const {formOptions} = this.props
-    console.log(this.state)
+    const {CalendarEvents, activeDate, startTime, endTime} = this.state
     return (
       <Grid className="WellHealthCalendar Container">
         <Row>
@@ -169,17 +167,17 @@ class WellHealthCalendar extends Component {
         <Row>
           <Col>
             <Calendar
-            onChange={this.onChange}
-            value={activeDate}
-            activeStartDate={activeDate} // fallback if value not set
-            tileContent={this.hasEvents}
-            minDetail={"month"}
-            onActiveDateChange={this.onActiveDateChange}
-            showFixedNumberOfWeeks={true}
-            next2Label={null}
-            prev2Label={null}
-            nextLabel={<i class="fa fa-chevron-circle-right"/>}
-            prevLabel={<i class="fa fa-chevron-circle-left"/>}
+              onChange={this.onChange}
+              value={activeDate}
+              activeStartDate={activeDate} // fallback if value not set
+              tileContent={this.hasEvents}
+              minDetail={"month"}
+              onActiveDateChange={this.onActiveDateChange}
+              showFixedNumberOfWeeks={true}
+              next2Label={null}
+              prev2Label={null}
+              nextLabel={<i class="fa fa-chevron-circle-right"/>}
+              prevLabel={<i class="fa fa-chevron-circle-left"/>}
             />
           </Col>
           <Col className="EventList" lgHidden mdHidden sm={12}>
@@ -198,10 +196,62 @@ class WellHealthCalendar extends Component {
             <Modal.Title id="contained-modal-title-lg">Request Appointment</Modal.Title>
           </Modal.Header>
             <Modal.Body>
-              <Form className="Container">
-                <Row>
-                  {this.renderForm(formOptions)}
-                </Row>
+            <Form className="Container AppointmentForm">
+              <Row>
+                <FormGroup>
+                  <FormGroup>
+                    <ControlLabel>Patient Name</ControlLabel>
+                    <FormControl type="text" name="title" placeholder="Name" onChange={this.onFormChange}/>
+                  </FormGroup>
+                    <ControlLabel>Start Time</ControlLabel>
+                    <ButtonToolbar>
+                    <DropdownButton title={startTime ? <Moment format="h:mma">{startTime}</Moment> : 'Select Time'} id="dropdown-size-medium" onSelect={(startTime) => this.setState({startTime})}>
+                      <MenuItem eventKey={new Date(0, 0, 0, 9, 0)}>9:00am</MenuItem>
+                      <MenuItem eventKey={new Date(0, 0, 0, 9, 30)}>9:30am</MenuItem>
+                      <MenuItem eventKey={new Date(0, 0, 0, 10, 0)}>10:00am</MenuItem>
+                      <MenuItem eventKey={new Date(0, 0, 0, 10, 30)}>10:30am</MenuItem>
+                      <MenuItem eventKey={new Date(0, 0, 0, 11, 0)}>11:00am</MenuItem>
+                      <MenuItem eventKey={new Date(0, 0, 0, 11, 30)}>11:30am</MenuItem>
+                      <MenuItem eventKey={new Date(0, 0, 0, 12, 0)}>12:00pm</MenuItem>
+                      <MenuItem eventKey={new Date(0, 0, 0, 12, 30)}>12:30pm</MenuItem>
+                      <MenuItem eventKey={new Date(0, 0, 0, 13, 0)}>1:00pm</MenuItem>
+                      <MenuItem eventKey={new Date(0, 0, 0, 13, 30)}>1:30pm</MenuItem>
+                      <MenuItem eventKey={new Date(0, 0, 0, 14, 0)}>2:00pm</MenuItem>
+                      <MenuItem eventKey={new Date(0, 0, 0, 14, 30)}>2:30pm</MenuItem>
+                      <MenuItem eventKey={new Date(0, 0, 0, 15, 0)}>3:00pm</MenuItem>
+                      <MenuItem eventKey={new Date(0, 0, 0, 15, 30)}>3:30pm</MenuItem>
+                      <MenuItem eventKey={new Date(0, 0, 0, 16, 0)}>4:00pm</MenuItem>
+                    </DropdownButton>
+                    </ButtonToolbar> 
+                  </FormGroup>
+                  <FormGroup>
+                    <ControlLabel>End Time</ControlLabel>
+                    <ButtonToolbar>
+                    <DropdownButton title={endTime ? <Moment format="h:mma">{endTime}</Moment> : 'Select Time'} id="dropdown-size-medium" onSelect={(endTime) => this.setState({endTime})}>
+                      <MenuItem eventKey={new Date(0, 0, 0, 9, 0)}>9:00am</MenuItem>
+                      <MenuItem eventKey={new Date(0, 0, 0, 9, 30)}>9:30am</MenuItem>
+                      <MenuItem eventKey={new Date(0, 0, 0, 10, 0)}>10:00am</MenuItem>
+                      <MenuItem eventKey={new Date(0, 0, 0, 10, 30)}>10:30am</MenuItem>
+                      <MenuItem eventKey={new Date(0, 0, 0, 11, 0)}>11:00am</MenuItem>
+                      <MenuItem eventKey={new Date(0, 0, 0, 11, 30)}>11:30am</MenuItem>
+                      <MenuItem eventKey={new Date(0, 0, 0, 12, 0)}>12:00pm</MenuItem>
+                      <MenuItem eventKey={new Date(0, 0, 0, 12, 30)}>12:30pm</MenuItem>
+                      <MenuItem eventKey={new Date(0, 0, 0, 13, 0)}>1:00pm</MenuItem>
+                      <MenuItem eventKey={new Date(0, 0, 0, 13, 30)}>1:30pm</MenuItem>
+                      <MenuItem eventKey={new Date(0, 0, 0, 14, 0)}>2:00pm</MenuItem>
+                      <MenuItem eventKey={new Date(0, 0, 0, 14, 30)}>2:30pm</MenuItem>
+                      <MenuItem eventKey={new Date(0, 0, 0, 15, 0)}>3:00pm</MenuItem>
+                      <MenuItem eventKey={new Date(0, 0, 0, 15, 30)}>3:30pm</MenuItem>
+                      <MenuItem eventKey={new Date(0, 0, 0, 16, 0)}>4:00pm</MenuItem>
+                    </DropdownButton>
+                    </ButtonToolbar> 
+                  </FormGroup>
+                <FormGroup>
+                  <ControlLabel>Notes</ControlLabel>
+                  <FormControl type="text" name="notes" placeholder="Notes" onChange={this.onFormChange} componentClass="textarea"/>
+                </FormGroup>
+                
+              </Row>
               </Form>
             </Modal.Body>
             <Modal.Footer>
