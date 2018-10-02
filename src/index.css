@@ -1,7 +1,7 @@
 :root {
   --navBarHeight: 52px;
   --footerHeight: 126px;
-  --primaryColor: #ff9800;
+  --primaryColor: #69f;
   --secondaryColor: #00aaf8;
   --tertiaryColor: #00bcf6;
   --quaternaryColor: #00dae4;
@@ -254,4 +254,19 @@ a, a:focus, a:active, a:visited {
   100% {
     transform: rotateZ(60deg) translate(1em, -9em);
   }
+}
+
+.btn-default{
+  color: white;
+  background-color: var(--primaryColor);
+  border: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+.btn-default:hover {
+  background-color: white;
+  color: black;
+  -webkit-transition: all 0.3s ease-out;
+  -moz-transition: all 0.3s ease-out;
+  -o-transition: all 0.3s ease-out;
+  transition: all 0.3s ease-out;
 }

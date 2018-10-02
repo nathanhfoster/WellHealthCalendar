@@ -4,7 +4,7 @@ import { connect as reduxConnect } from 'react-redux'
 import Calendar from 'react-calendar/dist/entry.nostyle'
 import {List} from 'immutable'
 import EventList from '../../components/EventList'
-import {Grid, Row, Col, PageHeader, Button} from 'react-bootstrap'
+import {Grid, Row, Col, PageHeader, Button, Modal, Form, FormControl, FormGroup, ControlLabel} from 'react-bootstrap'
 import {setCalendarEvents} from '../../actions/App'
 import Moment from 'react-moment'
 import MomentJS from 'moment'
@@ -23,11 +23,16 @@ const mapDispatchToProps = {
 class WellHealthCalendar extends Component {
   constructor(props) {
     super(props)
+    this.onChange = this.onChange.bind(this)
+    this.onFormChange = this.onFormChange.bind(this)
+    this.handleShow = this.handleShow.bind(this)
+    this.handleHide = this.handleHide.bind(this)
  
     this.state = {
       activeDate: Date,
       isMobile: false,
-      CalendarEvents: new List()
+      CalendarEvents: new List(),
+      show: false
     }
   }
 
@@ -40,22 +45,18 @@ class WellHealthCalendar extends Component {
   static defaultProps = {
     activeDate: new Date(),
     monthToString: {"01": 'Jan', "02": 'Feb', "03": 'Mar', "04": 'Apr', "05": 'May', "06": 'Jun',
-                    "07": 'Jul', "08": 'Aug', "09": 'Sep', "10": 'Oct', "11": 'Nov', "12": 'Dec'
-                  }
+                    "07": 'Jul', "08": 'Aug', "09": 'Sep', "10": 'Oct', "11": 'Nov', "12": 'Dec'},
+    formOptions: [
+      {type: "text", name: "title", placeholder: "Title"},
+      {type: "text", name: "startTime", placeholder: "Start Time"},
+      {type: "text", name: "endTime", placeholder: "End Time"},
+      {type: "text", name: "description", placeholder: "Description"},
+    ]
   }
   
   componentWillMount() {
      this.getState(this.props)
   }
-
-  shouldComponentUpdate(nextProps) {
-    return true
-  }
-
-  componentWillUpdate() {
-  }
-
-  /* render() */
 
   componentDidMount() {
   }
@@ -74,11 +75,11 @@ class WellHealthCalendar extends Component {
       })
   }
 
-  componentDidUpdate() {
-  }
+  onFormChange = (e) => this.setState({[e.target.name]: e.target.value})
 
-  componentWillUnmount() {
-  }
+  handleShow = () => this.setState({show: true})
+
+  handleHide = () => this.setState({show: false})
 
   onChange = activeDate => this.setState({activeDate})
 
@@ -101,7 +102,7 @@ class WellHealthCalendar extends Component {
         return view === 'month' && eventFound && !isMobile ? 
           <div className="hasEventsContainer">
             <span className="eventLabelColor" />
-            <span className="eventStartTime"><Moment format="HH:mma" className="eventStartTime">{k.startTime}</Moment></span>
+            <span className="eventStartTime"><Moment format="H:mma">{k.startTime}</Moment> {k.title}</span>
             <h6 className="eventTitle">{k.name}</h6>
           </div>
           : view === 'month' && eventFound && mapCounter[eventStartTime._d] < 2 ? 
@@ -113,9 +114,10 @@ class WellHealthCalendar extends Component {
   }
 
   setCalendarEvent = () => {
-    let {CalendarEvents} = this.state
-    CalendarEvents.push({key: 1, name: 'Event 1',   startTime: new Date(2018, 8, 3, 10, 30), endTime: new Date(2018, 9, 3, 12, 30)})
-    //CalendarEvents[new Date(2018, 8, 3, 10, 30, 10)] = {key: 1, name: 'Event 1',   startTime: new Date(2018, 8, 3, 10, 30), endTime: new Date(2018, 9, 3, 12, 30)}
+    let {activeDate, CalendarEvents, title, startTime, endTime, description} = this.state
+    startTime = new Date(activeDate.getFullYear(), activeDate.getMonth(), activeDate.getDay(), startTime)
+    endTime = new Date(activeDate.getFullYear(), activeDate.getMonth(), activeDate.getDay(), endTime)
+    CalendarEvents.push({key: CalendarEvents.length, title, startTime, endTime, description})
     this.props.setCalendarEvents(CalendarEvents)
   }
 
@@ -126,16 +128,29 @@ class WellHealthCalendar extends Component {
 
   onActiveDateChange = ({ activeStartDate, view }) => this.setState({activeDate: activeStartDate})
 
+  renderForm = (formOptions) => formOptions.map(k =>
+    <FormGroup>
+      <ControlLabel>{k.placeholder}</ControlLabel>
+      <FormControl type={k.type} name={k.name} placeholder={k.placeholder} onChange={this.onFormChange}/>
+    </FormGroup>)
+
+  validateForm = () => { 
+    //Appointments can only happen in the future
+
+   // No appointments requested should overlap
+  }
+
   render() {
     const {CalendarEvents, activeDate} = this.state
-    console.log(CalendarEvents)
+    const {formOptions} = this.props
+    console.log(this.state)
     return (
       <Grid className="WellHealthCalendar Container">
         <Row>
           <PageHeader className="pageHeader">WELL HEALTH CALENDAR</PageHeader>
         </Row>
         <Row>
-          <Button onClick={this.setCalendarEvent} className="todayButton">Create</Button>
+          <Button onClick={this.handleShow} className="todayButton">Create</Button>
           <Button onClick={this.Today} className="todayButton">Today</Button>
         </Row>
         <Row>
@@ -158,6 +173,28 @@ class WellHealthCalendar extends Component {
             <h2><Moment format="MM-D" filter={this.formatDate}>{activeDate}</Moment></h2>
             {CalendarEvents.length > 0 ? <EventList data={CalendarEvents} activeDate={activeDate}/> : null}
           </Col>
+        </Row>
+        <Row>
+          <Modal
+          {...this.props}
+          show={this.state.show}
+          onHide={this.handleHide}
+          dialogClassName="custom-modal"
+          >
+          <Modal.Header closeButton>
+            <Modal.Title id="contained-modal-title-lg">Request Appointment</Modal.Title>
+          </Modal.Header>
+            <Modal.Body>
+              <Form className="Container">
+                <Row>
+                  {this.renderForm(formOptions)}
+                </Row>
+              </Form>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button onClick={this.setCalendarEvent}>Create</Button>
+            </Modal.Footer>
+          </Modal>
         </Row>
       </Grid>
     )
