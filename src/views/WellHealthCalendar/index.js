@@ -47,8 +47,6 @@ class WellHealthCalendar extends Component {
 
   static defaultProps = {
     activeDate: new Date(),
-    monthToString: {"01": 'Jan', "02": 'Feb', "03": 'Mar', "04": 'Apr', "05": 'May', "06": 'Jun',
-                    "07": 'Jul', "08": 'Aug', "09": 'Sep', "10": 'Oct', "11": 'Nov', "12": 'Dec'},
   }
   
   componentWillMount() {
@@ -79,11 +77,6 @@ class WellHealthCalendar extends Component {
   handleHide = () => this.setState({show: false})
 
   onChange = activeDate => this.setState({activeDate})
-
-  formatDate = monthDay => {
-    const split = monthDay.split("-")
-    return this.props.monthToString[split[0]] + ' ' + split[1]
-  }
 
   hasEvents = ({ date, view }) => {
     let {CalendarEvents} = this.state
@@ -181,7 +174,7 @@ class WellHealthCalendar extends Component {
             />
           </Col>
           <Col className="EventList" lgHidden mdHidden sm={12}>
-            <h2><Moment format="MM-D" filter={this.formatDate}>{activeDate}</Moment></h2>
+            <h2><Moment format="MMMM D">{activeDate}</Moment></h2>
             {CalendarEvents.length > 0 ? <EventList data={CalendarEvents} activeDate={activeDate}/> : null}
           </Col>
         </Row>
@@ -193,7 +186,10 @@ class WellHealthCalendar extends Component {
           dialogClassName="custom-modal"
           >
           <Modal.Header closeButton>
-            <Modal.Title id="contained-modal-title-lg">Request Appointment</Modal.Title>
+            <Modal.Title id="contained-modal-title-lg">
+            Request Appointment on<br/>
+            <Moment format="MMMM D, YYYY">{activeDate}</Moment>
+            </Modal.Title>
           </Modal.Header>
             <Modal.Body>
             <Form className="Container AppointmentForm">
@@ -205,7 +201,7 @@ class WellHealthCalendar extends Component {
                   </FormGroup>
                     <ControlLabel>Start Time</ControlLabel>
                     <ButtonToolbar>
-                    <DropdownButton title={startTime ? <Moment format="h:mma">{startTime}</Moment> : 'Select Time'} id="dropdown-size-medium" onSelect={(startTime) => this.setState({startTime})}>
+                    <DropdownButton title={startTime ? <Moment format="h:mma">{startTime}</Moment> : <Moment format="h:mma">{activeDate}</Moment>} id="dropdown-size-medium" onSelect={(startTime) => this.setState({startTime})}>
                       <MenuItem eventKey={new Date(0, 0, 0, 9, 0)}>9:00am</MenuItem>
                       <MenuItem eventKey={new Date(0, 0, 0, 9, 30)}>9:30am</MenuItem>
                       <MenuItem eventKey={new Date(0, 0, 0, 10, 0)}>10:00am</MenuItem>
@@ -227,7 +223,7 @@ class WellHealthCalendar extends Component {
                   <FormGroup>
                     <ControlLabel>End Time</ControlLabel>
                     <ButtonToolbar>
-                    <DropdownButton title={endTime ? <Moment format="h:mma">{endTime}</Moment> : 'Select Time'} id="dropdown-size-medium" onSelect={(endTime) => this.setState({endTime})}>
+                    <DropdownButton title={endTime ? <Moment format="h:mma">{endTime}</Moment> : <Moment format="h:mma">{activeDate}</Moment>} id="dropdown-size-medium" onSelect={(endTime) => this.setState({endTime})}>
                       <MenuItem eventKey={new Date(0, 0, 0, 9, 0)}>9:00am</MenuItem>
                       <MenuItem eventKey={new Date(0, 0, 0, 9, 30)}>9:30am</MenuItem>
                       <MenuItem eventKey={new Date(0, 0, 0, 10, 0)}>10:00am</MenuItem>
