@@ -38,17 +38,9 @@ class EventList extends Component {
     this.getState(this.props)
   }
 
-  shouldComponentUpdate(nextProps) {
-    return true
-  }
-
-  componentWillUpdate() {
-  }
-
-  /* render() */
-
   componentDidMount() {
   }
+  
   componentWillReceiveProps(nextProps) {
     this.getState(nextProps)
   }
@@ -79,6 +71,7 @@ class EventList extends Component {
        <span className="EventColorLabelContainer" />
        <Moment format="h:mma - ">{k.startTime}</Moment>
        <Moment format="h:mma">{k.endTime}</Moment>
+       <span> {k.title}</span>
       </ListGroupItem> 
       : null }
      </div>

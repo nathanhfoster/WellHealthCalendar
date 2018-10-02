@@ -246,7 +246,6 @@ class WellHealthCalendar extends Component {
                   <ControlLabel>Notes</ControlLabel>
                   <FormControl type="text" name="notes" placeholder="Notes" onChange={this.onFormChange} componentClass="textarea"/>
                 </FormGroup>
-                
               </Row>
               </Form>
             </Modal.Body>
