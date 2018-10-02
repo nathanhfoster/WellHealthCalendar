@@ -4,12 +4,23 @@ import { connect as reduxConnect } from 'react-redux'
 import Calendar from 'react-calendar/dist/entry.nostyle'
 import {List} from 'immutable'
 import EventList from '../../components/EventList'
-import {Grid, Row, Col, PageHeader, Button, Modal, Form, FormControl, FormGroup, ControlLabel} from 'react-bootstrap'
+import {Grid, Row, Col, PageHeader, Button, Modal, Form, FormControl, FormGroup, ControlLabel, DropdownButton, ButtonToolbar, MenuItem} from 'react-bootstrap'
 import {setCalendarEvents} from '../../actions/App'
 import Moment from 'react-moment'
 import MomentJS from 'moment'
 import './styles.css'
 import './stylesM.css'
+
+const renderTimePicker = () => (
+  <ButtonToolbar>
+    <DropdownButton title="9:00am" id="dropdown-size-medium">
+      <MenuItem eventKey="1">9:00am</MenuItem>
+      <MenuItem eventKey="2">9:30am</MenuItem>
+      <MenuItem eventKey="3">10:00am</MenuItem>
+      <MenuItem eventKey="4">10:30am</MenuItem>
+    </DropdownButton>
+  </ButtonToolbar>
+)
 
 const mapStateToProps = ({ Window, CalendarEvents }) => ({
   Window,
@@ -48,7 +59,7 @@ class WellHealthCalendar extends Component {
                     "07": 'Jul', "08": 'Aug', "09": 'Sep', "10": 'Oct', "11": 'Nov', "12": 'Dec'},
     formOptions: [
       {type: "text", name: "title", placeholder: "Title"},
-      {type: "text", name: "startTime", placeholder: "Start Time"},
+      {type: "text", name: "startTime", placeholder: "Start Time", component: renderTimePicker},
       {type: "text", name: "endTime", placeholder: "End Time"},
       {type: "text", name: "description", placeholder: "Description"},
     ]
@@ -131,7 +142,7 @@ class WellHealthCalendar extends Component {
   renderForm = (formOptions) => formOptions.map(k =>
     <FormGroup>
       <ControlLabel>{k.placeholder}</ControlLabel>
-      <FormControl type={k.type} name={k.name} placeholder={k.placeholder} onChange={this.onFormChange}/>
+      <FormControl type={k.type} name={k.name} placeholder={k.placeholder} onChange={this.onFormChange} componentClass={k.component}/>
     </FormGroup>)
 
   validateForm = () => { 
@@ -139,6 +150,8 @@ class WellHealthCalendar extends Component {
 
    // No appointments requested should overlap
   }
+
+
 
   render() {
     const {CalendarEvents, activeDate} = this.state
